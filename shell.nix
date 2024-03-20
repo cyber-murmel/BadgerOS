@@ -1,8 +1,20 @@
 let
-  nixpkgs_rev = "f4429fde23e1fb20ee27f264e74c28c619d2cebb";
+  nixpkgs_rev = "1f7e3343e3de9e8d05d8316262a95409a390c83b";  # master on 2024-03-20
+
+  # TODO: change to mirrexagon's repo after merges of PR 42 and 44
+  nixpkgs-esp-dev_rev = "b3594b490ed1ffb40e5dd20ea7074b73ae34ea27"; # main on 2024-03-20
+  nixpkgs-esp-dev_sha256 = "sha256:0fqvk9va6rqd9pmjd82pmikzc30d174jcgmvfyacg875qgrxjii8";
+  nixpkgs-esp-dev_src = (builtins.fetchTarball {
+    url = "https://github.com/cyber-murmel/nixpkgs-esp-dev/archive/${nixpkgs-esp-dev_rev}.tar.gz";
+    sha256 = nixpkgs-esp-dev_sha256;
+  });
 in
 
-{ pkgs ? import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/${nixpkgs_rev}.tar.gz") { }
+{ pkgs ? import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/${nixpkgs_rev}.tar.gz") {
+  overlays = [
+    (import "${nixpkgs-esp-dev_src}/overlay.nix")
+  ];
+}
 }:
 
 with pkgs;
@@ -36,10 +48,7 @@ let
 
       mkdir -p $out
 
-      cp -r bin $out
-      cp -r lib $out
-      cp -r libexec $out
-      cp -r riscv32-unknown-linux-gnu $out
+      cp -r ./* $out
 
       runHook postInstall
     '';
@@ -51,5 +60,6 @@ mkShell {
     cmake
     esptool
     picocom
+    esp-idf-esp32c6
   ];
 }
